@@ -4,12 +4,12 @@ import base64
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import io
 
 load_dotenv()
 
 app = FastAPI()
 
-# Инициализируем клиента OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.get("/")
@@ -19,26 +19,21 @@ def root():
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
     try:
-        # Читаем файл и кодируем в base64
         image_bytes = await file.read()
         base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
-        # Запрос к GPT‑4V
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": "Что на этом фото? Назови блюдо и приблизительное КБЖУ (калории, белки, жиры, углеводы) в формате JSON.",
-                        },
+                        {"type": "text", "text": "Что на этом фото? Назови блюдо и приблизительное КБЖУ (калории, белки, жиры, углеводы) в формате JSON."},
                         {
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_image}"
-                            },
+                            }
                         },
                     ],
                 }
