@@ -1,5 +1,4 @@
-python-dotenv
 fastapi
+python-dotenv
+openai>=1.0.0
 uvicorn
-python-multipart
-openai
