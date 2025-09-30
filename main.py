@@ -1,15 +1,16 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
-import openai
 import base64
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
 app = FastAPI()
 
-openai.api_key = os.getenv("OPENAI_API_KEY") or "your-openai-key-here"
+# Инициализируем клиента OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.get("/")
 def root():
@@ -23,18 +24,21 @@ async def predict_image(file: UploadFile = File(...)):
         base64_image = base64.b64encode(image_bytes).decode("utf-8")
 
         # Запрос к GPT‑4V
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4-vision-preview",
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Что на этом фото? Назови блюдо и приблизительное КБЖУ (калории, белки, жиры, углеводы) в формате JSON."},
+                        {
+                            "type": "text",
+                            "text": "Что на этом фото? Назови блюдо и приблизительное КБЖУ (калории, белки, жиры, углеводы) в формате JSON.",
+                        },
                         {
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/jpeg;base64,{base64_image}"
-                            }
+                            },
                         },
                     ],
                 }
@@ -42,7 +46,7 @@ async def predict_image(file: UploadFile = File(...)):
             max_tokens=1000,
         )
 
-        result_text = response.choices[0].message["content"]
+        result_text = response.choices[0].message.content
         return JSONResponse(content={"result": result_text})
 
     except Exception as e:
