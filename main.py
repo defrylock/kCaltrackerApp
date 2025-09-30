@@ -25,7 +25,7 @@ async def predict_image(file: UploadFile = File(...)):
 
         # Запрос к GPT‑4V
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
